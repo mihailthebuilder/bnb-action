@@ -1,16 +1,22 @@
 # action.yml
 name: 'Hello World'
 description: 'Greet someone and record the time'
-inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
-    required: true
-    default: 'World'
-outputs:
-  time: # id of output
-    description: 'The time we greeted you'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.who-to-greet }}
+  steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: "Run app"
+      env:
+        DB: '{"ENGINE": "django.db.backends.postgresql", "NAME": "postgres", "USER": "postgres", "PASSWORD": "postgres", "HOST": "localhost", "PORT": "5432"}'
+        DJANGO_ENV: development
+        SECRET_KEY: secret_key
+      run: |
+        python manage.py migrate
+        python manage.py test
